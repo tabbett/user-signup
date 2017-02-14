@@ -1,3 +1,5 @@
+
+
 #!/usr/bin/env python
 #
 # Copyright 2007 Google Inc.
@@ -14,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 import webapp2
 import re
 
@@ -21,11 +24,12 @@ form = """
 <form method = "post">
     <label>
         <h3>Username
-        <textarea name = 'username' value = "%(username)s">
-        </textarea> 
-         <div style ="color: red">%(username_error)s</div>
+        <textarea name = 'username' value = "%(username)s"> 
+        </textarea>
+        <div style ="color: red">%(username_error)s</div>              
         </h3>
     </label>
+
     <label>
         <h3>Password
         <textarea name = 'password' type = "password">
@@ -33,6 +37,7 @@ form = """
         <div style ="color: red">%(password_error)s</div>
         </h3>
     </label>
+
     <label>
         <h3>Verify Password
         <textarea name = 'verify' type = "password">
@@ -40,6 +45,7 @@ form = """
         <div style ="color: red">%(verification_error)s</div>
         </h3>
     </label>
+
     <label>
         <h3>Email (optional)
         <textarea name = 'email' value ="%(email)s">
@@ -55,12 +61,13 @@ form = """
 
 header = "<h1>Signup </h1><br>"
 
-user_re = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+
 password_re = re.compile(r"^.{3,20}$")
 email_re = re.compile(r"^[\S]+@[\S]+.[\S]+$")
 
-def valid_username(username):
-    return user_re.match(username) 
+def valid_username(user):
+    user_re = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+    return user_re.match(user) 
 
 def valid_password(password):
     return password_re.match(password)
@@ -69,11 +76,21 @@ def valid_email(email):
     return email_re.match(email)
 
 class MainHandler(webapp2.RequestHandler):
-    def write_form(self, username_error="", password_error="", verification_error="", 
-                    email_error="", username="",email=""):
-        self.response.out.write(header + form %{"username_error": username_error,
-        "password_error": password_error, "verification_error": verification_error, 
-        "email_error":email_error, "username":username, "email":email})
+   
+    def write_form(self, username="", username_error="", password_error="", 
+                    verification_error="", email="", email_error=""):
+        values = {
+            "username": username,
+            "username_error": username_error,
+            "password_error": password_error,
+            "verification_error": verification_error,
+            "email": email,
+            "email_error": email_error
+
+        }
+        
+        response = form %(values)
+        self.response.out.write(header + response)
     
     def get(self):
         self.write_form()
@@ -84,11 +101,13 @@ class MainHandler(webapp2.RequestHandler):
         verify = self.request.get('verify')
         email = self.request.get('email')
 
-        if not valid_username(user):
-            username_error = "That's not a valid username"
-            self.write_form(username_error)
-        else:
+        if valid_username(user):
             self.response.write("Welcome, " + user +"!")
+        else:
+            username_error = "That's not a valid username"
+            self.write_form(username = user, username_error = username_error)
+
+            
        # elif not password or not valid_password(password):
        #     password_error = "That wasn't a valid password"
        #     self.response.write(form)
@@ -96,6 +115,7 @@ class MainHandler(webapp2.RequestHandler):
        #     verification_error = "Your passwords didn't match"
        # elif not valid_email(email):
        #     email_error = "That's not a vaild email"
+#class WelcomeHandler(webapp2.RequestHandler):
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
