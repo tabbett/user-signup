@@ -24,32 +24,28 @@ form = """
 <form method = "post">
     <label>
         <h3>Username
-        <textarea name = 'username' value = "%(username)s"> 
-        </textarea>
+        <input name = 'username' value = "%(username)s"/> 
         <div style ="color: red">%(username_error)s</div>              
         </h3>
     </label>
 
     <label>
         <h3>Password
-        <textarea name = 'password' type = "password">
-        </textarea> 
+        <input name = 'password' type = "password"/>
         <div style ="color: red">%(password_error)s</div>
         </h3>
     </label>
 
     <label>
         <h3>Verify Password
-        <textarea name = 'verify' type = "password">
-        </textarea> 
+        <input name = 'verify' type = "password"/>
         <div style ="color: red">%(verification_error)s</div>
         </h3>
     </label>
 
     <label>
         <h3>Email (optional)
-        <textarea name = 'email' value ="%(email)s">
-        </textarea> 
+        <input name = 'email' value ="%(email)s"/>
          <div style ="color: red">%(email_error)s</div>
         </h3>
     </label>
@@ -89,34 +85,33 @@ class MainHandler(webapp2.RequestHandler):
 
         }
         
-        response = form %(values)
+        response = form % values
         self.response.out.write(header + response)
     
     def get(self):
         self.write_form()
 
     def post(self):
-        user = self.request.get('username')
-        password = self.request.get('password')
-        verify = self.request.get('verify')
-        email = self.request.get('email')
+        user = self.request.get("username")
+        password = self.request.get("password")
+        verify = self.request.get("verify")
+        email = self.request.get("email")
 
-        if valid_username(user):
-            self.response.write("Welcome, " + user +"!")
+        if not user:
+            username_error = "You must enter a username."
+            self.write_form(username_error=username_error)
+        elif not valid_username(user):
+            username_error = "That's not  a valid username"
+            self.write_form(username = user, username_error=username_error)
+        elif password != verify:
+            password_error = "Your passwords do not match"
+            self.write_form(username=user, password_error=password_error)
+        elif email and not valid_email(email):
+            email_error = "That's not a valid email"
+            self.write_form(username=user, email=email, email_error=email_error)
         else:
-            username_error = "That's not a valid username"
-            self.write_form(username = user, username_error = username_error)
-
-            
-       # elif not password or not valid_password(password):
-       #     password_error = "That wasn't a valid password"
-       #     self.response.write(form)
-       # elif password != verify:
-       #     verification_error = "Your passwords didn't match"
-       # elif not valid_email(email):
-       #     email_error = "That's not a vaild email"
-#class WelcomeHandler(webapp2.RequestHandler):
-
+             self.response.out.write("Welcome, " +user+"!")
+  
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
 ], debug=True)
